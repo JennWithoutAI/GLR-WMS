@@ -5,7 +5,7 @@ services:
       target: dev
     container_name: autoMagazijn-vite
     ports:
-      - "80:80"
+      - "5001:5OO1"
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -13,6 +13,8 @@ services:
       - CHOKIDAR_USEPOLLING=true
     depends_on:
       - golang
+    networks:
+      - proxy
   golang:
     build:
       context: ./backend
@@ -51,3 +53,7 @@ services:
 
 volumes:
   postgres_data:
+
+networks:
+  proxy:
+    external: true

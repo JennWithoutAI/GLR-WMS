@@ -82,7 +82,31 @@ func setupApp() (*app, error) {
 		return nil, fmt.Errorf("ping database: %w", err)
 	}
 
+	// Auto-create tables if they don't exist (safe to run every time)
+	if err := setupSchema(context.Background(), pool); err != nil {
+		return nil, fmt.Errorf("setup schema: %w", err)
+	}
+
 	return &app{pool: pool, cfg: cfg}, nil
+}
+
+// setupSchema creates tables automatically at startup
+func setupSchema(ctx context.Context, pool *pgxpool.Pool) error {
+	_, err := pool.Exec(ctx, `
+		CREATE TABLE IF NOT EXISTS assets (
+			id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+			code       TEXT UNIQUE NOT NULL,
+			scan_count BIGINT NOT NULL DEFAULT 0,
+			created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+			last_seen  TIMESTAMPTZ NOT NULL DEFAULT now()
+		);
+		CREATE TABLE IF NOT EXISTS scan_events (
+			id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+			asset_code TEXT NOT NULL REFERENCES assets(code),
+			scanned_at TIMESTAMPTZ NOT NULL DEFAULT now()
+		);
+	`)
+	return err
 }
 
 func (a *app) authenticate() bool {
@@ -230,7 +254,7 @@ func writeJSON(w http.ResponseWriter, status int, v interface{}) {
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, DELETE, OPTIONS") // DELETE added
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Auth-Word")
 
 		if r.Method == http.MethodOptions {
