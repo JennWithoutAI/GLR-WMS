@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>History – Scan Dashboard</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+<div id="header"></div>
+<main class="container page">
+
+    <h1>Scan history</h1>
+    <div class="grid">
+        <div class="card panel"><div class="stat-num" id="t">0</div><div class="stat-label">Total</div></div>
+        <div class="card panel"><div class="stat-num status-ok" id="o">0</div><div class="stat-label">OK</div></div>
+        <div class="card panel"><div class="stat-num status-err" id="f">0</div><div class="stat-label">Failed</div></div>
+    </div>
+    <div class="panel">
+        <div class="toolbar"><h3>Newest first</h3><button class="link-btn" id="clear">Clear history</button></div>
+        <ul class="list" id="list"></ul>
+        <p class="hint">Stored in this browser only.</p>
+    </div>
+</main>
+<script src="./app.js"></script>
+<script>
+    renderHeader('history.html');
+
+    function draw() {
+        const s = scanLog.stats();
+        $("#t").textContent = s.total; $("#o").textContent = s.ok; $("#f").textContent = s.err;
+        $("#list").innerHTML = scanLog.get().slice().reverse().map(scanRow).join("") || "<li class=\"empty\">No scans yet. Go to the Scan page to add one.</li>";
+    }
+    $("#clear").addEventListener("click", () => { if (confirm("Clear the scan history on this device?")) { scanLog.set([]); draw(); } });
+    draw();
+</script>
+</body>
+</html>

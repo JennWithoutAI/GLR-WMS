@@ -1,0 +1,9 @@
+FROM golang:1.27.1-alpine AS dev
+WORKDIR /app
+# gcc/musl-dev only needed if you use cgo or sqlite — harmless otherwise
+RUN apk add --no-cache gcc musl-dev git
+
+Copy . .
+
+EXPOSE 3000
+CMD ["go", "run", "."]

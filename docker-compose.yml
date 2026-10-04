@@ -1,0 +1,53 @@
+services:
+  vite:
+    build:
+      context: ./frontend
+      target: dev
+    container_name: autoMagazijn-vite
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - golang
+  golang:
+    build:
+      context: ./backend
+      target: dev
+    container_name: autoMagazijn-golang
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./backend:/app
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_aUSER: admin
+      DB_PASSWORD: pass
+      DB_NAME: autoMagazijn
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:latest
+    container_name: autoMagazijn-postgres
+    environment:
+      POSTGRES_DB: autoMagazijn
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d autoMagazijn"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

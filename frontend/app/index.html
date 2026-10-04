@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Overview – Scan Dashboard</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+<div id="header"></div>
+<main class="container page">
+
+    <h1>Overview</h1>
+    <div class="grid">
+        <a class="card card--accent" href="records.html"><div class="stat-num" id="dbCount">–</div><div class="stat-label">Assets in database</div></a>
+        <a class="card" href="history.html"><div class="stat-num" id="okStat">0</div><div class="stat-label">Successful scans on this device</div></a>
+        <a class="card" href="history.html"><div class="stat-num" id="failStat">0</div><div class="stat-label">Failed scans on this device</div></a>
+    </div>
+    <div class="panel">
+        <h3>Quick scan</h3>
+        <form class="row" id="form">
+            <input class="input" id="num" inputmode="numeric" placeholder="Number, e.g. 51" autocomplete="off" aria-label="Number to scan">
+            <button class="btn btn--primary" id="btn">Scan</button>
+        </form>
+        <p class="hint" id="hint"></p>
+    </div>
+    <div class="panel">
+        <div class="toolbar"><h3>Latest records</h3><a class="link-more" href="records.html">All records</a></div>
+        <ul class="list" id="list"></ul>
+    </div>
+</main>
+<script src="./app.js"></script>
+<script>
+    renderHeader('index.html');
+
+    async function refresh() {
+        const st = scanLog.stats();
+        $("#okStat").textContent = st.ok; $("#failStat").textContent = st.err;
+        try {
+            const items = await getItems();
+            $("#dbCount").textContent = items.length;
+            items.sort((a,b) => new Date(b.lastSeen) - new Date(a.lastSeen));
+            $("#list").innerHTML = items.slice(0,5).map(itemRow).join("") || "<li class=\"empty\">No records yet. Scan a number to add the first one.</li>";
+        } catch (e) { $("#list").innerHTML = `<li class="status-err">Cannot reach the backend: ${esc(e.message)}</li>`; }
+    }
+    $("#form").addEventListener("submit", async e => {
+        e.preventDefault(); $("#btn").disabled = true;
+        try { const r = await doScan($("#num").value); $("#hint").textContent = `${r.code}: ${r.message}`; $("#num").value = ""; if (r.isNew) await askDetails(r.code); }
+        catch (err) { $("#hint").textContent = err.message; }
+        $("#btn").disabled = false; $("#num").focus(); refresh();
+    });
+    refresh();
+</script>
+</body>
+</html>

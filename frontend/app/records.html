@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Records – Scan Dashboard</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+<div id="header"></div>
+<main class="container page">
+
+    <h1>Database records</h1>
+    <div class="panel">
+        <div class="toolbar">
+            <h3><span id="count">0</span> records</h3>
+            <div class="row">
+                <input class="input" id="q" style="font-size:1rem;padding:.5rem 1rem" placeholder="Filter by code" aria-label="Filter by code">
+                <button class="btn" id="reload">Reload</button>
+            </div>
+        </div>
+        <ul class="list" id="list"></ul>
+    </div>
+</main>
+<script src="./app.js"></script>
+<script>
+    renderHeader('records.html');
+
+    let items = [];
+    function draw() {
+        const q = $("#q").value.trim().toLowerCase();
+        const shown = items.filter(i => i.code.toLowerCase().includes(q));
+        $("#count").textContent = shown.length;
+        $("#list").innerHTML = shown.map(itemRow).join("") || `<li class="empty">${items.length ? "No codes match that filter." : "No records yet. Scan a number to add the first one."}</li>`;
+    }
+    async function load() {
+        $("#list").innerHTML = "<li class=\"empty\">Loading…</li>";
+        try { items = await getItems(); items.sort((a,b) => new Date(b.lastSeen) - new Date(a.lastSeen)); draw(); }
+        catch (e) { $("#list").innerHTML = `<li class="status-err">Cannot reach the backend: ${esc(e.message)}</li>`; }
+    }
+    $("#q").addEventListener("input", draw);
+    $("#reload").addEventListener("click", load);
+    load();
+</script>
+</body>
+</html>

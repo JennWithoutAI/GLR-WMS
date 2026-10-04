@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Categories – Scan Dashboard</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+<div id="header"></div>
+<main class="container page">
+    <h1>Categories</h1>
+    <div class="panel">
+        <form class="row" id="form">
+            <input class="input" id="name" placeholder="New category name" autocomplete="off" aria-label="New category name">
+            <button class="btn btn--primary">Add category</button>
+        </form>
+        <p class="hint" id="hint"></p>
+    </div>
+    <div class="panel"><ul class="list" id="list"></ul></div>
+</main>
+<script src="./app.js"></script>
+<script>
+    renderHeader('categories.html');
+    function draw() {
+        $("#list").innerHTML = catStore.get().map(c => `<li style="grid-template-columns:1fr auto"><span class="tag" style="justify-self:start">${esc(c)}</span><button class="link-btn" data-c="${esc(c)}">Remove</button></li>`).join("") || '<li class="empty">No categories yet. Add one above.</li>';
+    }
+    $("#form").addEventListener("submit", e => {
+        e.preventDefault();
+        $("#hint").textContent = catStore.add($("#name").value) ? "" : "Enter a name that is not in the list yet.";
+        $("#name").value = ""; draw();
+    });
+    $("#list").addEventListener("click", e => {
+        const c = e.target.dataset.c;
+        if (c && confirm(`Remove category "${c}"? Items already saved keep it.`)) { catStore.remove(c); draw(); }
+    });
+    draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin – Scan Dashboard</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+<div id="header"></div>
+<main class="container page">
+
+    <h1>Admin</h1>
+    <div class="panel">
+        <h3>Delete all records</h3>
+        <p>This permanently deletes all assets and scan events from the database. Type <b>DELETE</b> to confirm.</p>
+        <div class="row">
+            <input class="input" id="confirm" placeholder="DELETE" autocomplete="off" aria-label="Type DELETE to confirm">
+            <button class="btn btn--danger" id="go" disabled>Delete all records</button>
+        </div>
+        <p class="hint" id="hint"></p>
+    </div>
+</main>
+<script src="./app.js"></script>
+<script>
+    renderHeader('admin.html');
+
+    $("#confirm").addEventListener("input", () => $("#go").disabled = $("#confirm").value !== "DELETE");
+    $("#go").addEventListener("click", async () => {
+        $("#go").disabled = true;
+        try { const r = await deleteAll(); $("#hint").textContent = `Deleted ${r.assetsDeleted} asset(s) and ${r.eventsDeleted} scan event(s).`; $("#confirm").value = ""; }
+        catch (e) { $("#hint").textContent = `Delete failed: ${e.message}`; $("#go").disabled = false; }
+    });
+</script>
+</body>
+</html>

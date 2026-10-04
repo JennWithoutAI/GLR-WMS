@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Scan – Scan Dashboard</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+<div id="header"></div>
+<main class="container page">
+
+    <h1>Scan</h1>
+    <div class="panel">
+        <form class="row" id="form">
+            <input class="input" id="num" inputmode="numeric" placeholder="Number, e.g. 51" autocomplete="off" autofocus aria-label="Number to scan">
+            <button class="btn btn--primary" id="btn">Scan</button>
+        </form>
+        <p class="hint" id="hint"></p>
+    </div>
+    <div class="panel">
+        <div class="toolbar"><h3>This session</h3><a class="link-more" href="history.html">Full history</a></div>
+        <ul class="list" id="list"></ul>
+    </div>
+</main>
+<script src="./app.js"></script>
+<script>
+    renderHeader('scan.html');
+
+    const session = [];
+    const draw = () => $("#list").innerHTML = session.slice().reverse().map(scanRow).join("") || "<li class=\"empty\">Nothing scanned yet.</li>";
+    $("#num").addEventListener("input", () => {
+        const v = $("#num").value.trim(), c = buildCode(v);
+        $("#hint").textContent = c ? `Will send ${c}` : (v ? "Enter a whole number between 0 and 99999999." : "");
+    });
+    $("#form").addEventListener("submit", async e => {
+        e.preventDefault(); $("#btn").disabled = true;
+        try { const r = await doScan($("#num").value); session.push(r); $("#num").value = ""; $("#hint").textContent = ""; draw(); if (r.isNew) await askDetails(r.code); }
+        catch (err) { $("#hint").textContent = err.message; }
+        $("#btn").disabled = false; $("#num").focus();
+    });
+    draw();
+</script>
+</body>
+</html>
