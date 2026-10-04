@@ -4,8 +4,6 @@ services:
       context: ./frontend
       target: dev
     container_name: autoMagazijn-vite
-    ports:
-      - "5001:5OO1"
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -14,20 +12,20 @@ services:
     depends_on:
       - golang
     networks:
+      - default
       - proxy
+
   golang:
     build:
       context: ./backend
       target: dev
     container_name: autoMagazijn-golang
-    ports:
-      - "5173:5173"
     volumes:
       - ./backend:/app
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_aUSER: admin
+      DB_USER: admin
       DB_PASSWORD: pass
       DB_NAME: autoMagazijn
     depends_on:
@@ -35,14 +33,12 @@ services:
         condition: service_healthy
 
   postgres:
-    image: postgres:latest
+    image: postgres:18
     container_name: autoMagazijn-postgres
     environment:
       POSTGRES_DB: autoMagazijn
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: pass
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
